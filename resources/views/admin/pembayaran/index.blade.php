@@ -12,20 +12,43 @@
                 <h3 class="text-lg font-black text-gray-800 tracking-tight">Ringkasan Pembayaran</h3>
                 <p class="text-sm font-medium text-gray-400">Daftar mahasiswa yang telah melakukan pembayaran</p>
             </div>
-            <!-- Search Bar -->
-            <form action="{{ route('admin.pembayaran.index') }}" method="GET" class="relative max-w-md group">
-                <input type="text" name="search" value="{{ request('search') }}" 
-                       placeholder="Cari nama atau NIM mahasiswa..." 
-                       class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-sm text-gray-700 shadow-sm group-hover:border-blue-300">
-                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                    <i class="ph-bold ph-magnifying-glass text-xl"></i>
+            <!-- Filters -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Search Bar -->
+                <form action="{{ route('admin.pembayaran.index') }}" method="GET" class="relative flex-1 group">
+                    <input type="text" name="search" value="{{ request('search') }}" 
+                           placeholder="Cari nama atau NIM..." 
+                           class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-sm text-gray-700 shadow-sm group-hover:border-blue-300">
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                        <i class="ph-bold ph-magnifying-glass text-xl"></i>
+                    </div>
+                    @if(request('search'))
+                    <a href="{{ route('admin.pembayaran.index', ['angkatan' => request('angkatan')]) }}" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-rose-500">
+                        <i class="ph-bold ph-x-circle text-xl"></i>
+                    </a>
+                    @endif
+                </form>
+
+                <!-- Angkatan Filter -->
+                <div class="relative min-w-[160px]">
+                    <select onchange="window.location.href=this.value" 
+                            class="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-sm text-gray-700 shadow-sm appearance-none cursor-pointer">
+                        <option value="{{ route('admin.pembayaran.index', ['search' => request('search')]) }}">Semua Angkatan</option>
+                        @foreach($daftarAngkatan as $a)
+                            <option value="{{ route('admin.pembayaran.index', ['angkatan' => $a, 'search' => request('search')]) }}" 
+                                {{ request('angkatan') == $a ? 'selected' : '' }}>
+                                Angkatan 20{{ $a }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <i class="ph-bold ph-funnel text-xl"></i>
+                    </div>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <i class="ph-bold ph-caret-down"></i>
+                    </div>
                 </div>
-                @if(request('search'))
-                <a href="{{ route('admin.pembayaran.index') }}" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-rose-500">
-                    <i class="ph-bold ph-x-circle text-xl"></i>
-                </a>
-                @endif
-            </form>
+            </div>
         </div>
         <div class="flex items-center gap-3 h-fit">
             <button onclick="document.getElementById('importModal').classList.remove('hidden')"
@@ -83,7 +106,7 @@
             </div>
             <div>
                 <p class="text-[11px] font-black text-gray-400 uppercase tracking-wider">Total Mahasiswa</p>
-                <p class="text-2xl font-black text-gray-800">{{ $pembayarans->total() }}</p>
+                <p class="text-2xl font-black text-gray-800">{{ $pembayarans->count() }}</p>
             </div>
         </div>
         <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
@@ -127,7 +150,7 @@
                     @forelse($pembayarans as $key => $p)
                     <tr class="group hover:bg-gray-50/50 transition-colors duration-200">
                         <td class="px-8 py-6">
-                            <span class="font-bold text-gray-500">{{ $pembayarans->firstItem() + $key }}</span>
+                            <span class="font-bold text-gray-500">{{ $key + 1 }}</span>
                         </td>
                         <td class="px-8 py-6">
                             <span class="font-bold text-gray-700">{{ $p->nama }}</span>
@@ -171,12 +194,7 @@
             </table>
         </div>
         
-        <!-- Pagination -->
-        @if($pembayarans->hasPages())
-        <div class="px-8 py-6 bg-gray-50/50 border-t border-gray-100">
-            {{ $pembayarans->links() }}
-        </div>
-        @endif
+        <!-- No Pagination -->
     </div>
 </div>
 @endsection
