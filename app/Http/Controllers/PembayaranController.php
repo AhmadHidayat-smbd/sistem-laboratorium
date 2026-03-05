@@ -14,6 +14,7 @@ class PembayaranController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $angkatan = $request->input('angkatan');
 
         $query = Pembayaran::select(
             'nim',
@@ -22,6 +23,7 @@ class PembayaranController extends Controller
             DB::raw('sum(nominal) as total_nominal')
         );
 
+        // Filter Search
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
@@ -29,12 +31,22 @@ class PembayaranController extends Controller
             });
         }
 
-        $pembayarans = $query->groupBy('nim', 'nama')
-            ->orderBy('nama')
-            ->paginate(10)
-            ->withQueryString();
+        // Filter Angkatan (Ambil 2 digit pertama NIM)
+        if ($angkatan) {
+            $query->where('nim', 'like', "{$angkatan}%");
+        }
 
-        return view('admin.pembayaran.index', compact('pembayarans', 'search'));
+        $pembayarans = $query->groupBy('nim', 'nama')
+            ->orderBy('nim', 'asc')
+            ->get(); // Hapus pagination
+
+        // Ambil daftar angkatan yang ada (2 digit pertama NIM)
+        $daftarAngkatan = Pembayaran::select(DB::raw('LEFT(nim, 2) as angkatan'))
+            ->groupBy('angkatan')
+            ->orderBy('angkatan', 'desc')
+            ->pluck('angkatan');
+
+        return view('admin.pembayaran.index', compact('pembayarans', 'search', 'angkatan', 'daftarAngkatan'));
     }
 
     public function show($nim)
